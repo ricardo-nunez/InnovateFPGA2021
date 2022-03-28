@@ -9,22 +9,6 @@
    categories="System" />
  <parameter name="bonusData"><![CDATA[bonusData 
 {
-   element accelerometer_spi_0
-   {
-      datum _sortIndex
-      {
-         value = "15";
-         type = "int";
-      }
-   }
-   element accelerometer_spi_0.avalon_accelerometer_spi_mode_slave
-   {
-      datum baseAddress
-      {
-         value = "270336";
-         type = "String";
-      }
-   }
    element clk_50
    {
       datum _sortIndex
@@ -225,6 +209,27 @@
          type = "String";
       }
    }
+   element spi_0
+   {
+      datum _sortIndex
+      {
+         value = "15";
+         type = "int";
+      }
+   }
+   element spi_0.spi_control_port
+   {
+      datum _tags
+      {
+         value = "";
+         type = "String";
+      }
+      datum baseAddress
+      {
+         value = "270336";
+         type = "String";
+      }
+   }
    element sysid_qsys
    {
       datum _sortIndex
@@ -278,11 +283,6 @@
  <parameter name="timeStamp" value="0" />
  <parameter name="useTestBenchNamingPattern" value="false" />
  <instanceScript></instanceScript>
- <interface
-   name="accelerometer_spi_0_external_interface"
-   internal="accelerometer_spi_0.external_interface"
-   type="conduit"
-   dir="end" />
  <interface name="clk" internal="clk_50.clk_in" type="clock" dir="end" />
  <interface
    name="led_pio"
@@ -330,14 +330,11 @@
    internal="rh_temp_i2c_opencores.export"
    type="conduit"
    dir="end" />
- <module
-   name="accelerometer_spi_0"
-   kind="altera_up_avalon_accelerometer_spi"
-   version="18.0"
-   enabled="1">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="50000000" />
-  <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
- </module>
+ <interface
+   name="spi_0_external"
+   internal="spi_0.external"
+   type="conduit"
+   dir="end" />
  <module name="clk_50" kind="clock_source" version="21.1" enabled="1">
   <parameter name="clockFrequency" value="50000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -453,7 +450,7 @@
   <parameter name="dataAddrWidth" value="19" />
   <parameter name="dataMasterHighPerformanceAddrWidth" value="1" />
   <parameter name="dataMasterHighPerformanceMapParam" value="" />
-  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='led_pio.s1' start='0x1000' end='0x1010' type='altera_avalon_pio.s1' /><slave name='shared_memory.s1' start='0x2000' end='0x3000' type='altera_avalon_onchip_memory2.s1' /><slave name='onchip_memory2.s1' start='0x20000' end='0x40000' type='altera_avalon_onchip_memory2.s1' /><slave name='nios2_gen2.debug_mem_slave' start='0x40800' end='0x41000' type='altera_nios2_gen2.debug_mem_slave' /><slave name='rh_temp_i2c_opencores.avalon_slave_0' start='0x41000' end='0x41020' type='i2c_opencores.avalon_slave_0' /><slave name='light_i2c_opencores.avalon_slave_0' start='0x41020' end='0x41040' type='i2c_opencores.avalon_slave_0' /><slave name='mpu_i2c_opencores.avalon_slave_0' start='0x41040' end='0x41060' type='i2c_opencores.avalon_slave_0' /><slave name='timer.s1' start='0x41060' end='0x41080' type='altera_avalon_timer.s1' /><slave name='rh_temp_drdy_n.s1' start='0x41080' end='0x41090' type='altera_avalon_pio.s1' /><slave name='light_int.s1' start='0x41090' end='0x410A0' type='altera_avalon_pio.s1' /><slave name='mpu_int.s1' start='0x410A0' end='0x410B0' type='altera_avalon_pio.s1' /><slave name='sysid_qsys.control_slave' start='0x410B0' end='0x410B8' type='altera_avalon_sysid_qsys.control_slave' /><slave name='jtag_uart.avalon_jtag_slave' start='0x410B8' end='0x410C0' type='altera_avalon_jtag_uart.avalon_jtag_slave' /><slave name='accelerometer_spi_0.avalon_accelerometer_spi_mode_slave' start='0x42000' end='0x42002' type='altera_up_avalon_accelerometer_spi.avalon_accelerometer_spi_mode_slave' /></address-map>]]></parameter>
+  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='led_pio.s1' start='0x1000' end='0x1010' type='altera_avalon_pio.s1' /><slave name='shared_memory.s1' start='0x2000' end='0x3000' type='altera_avalon_onchip_memory2.s1' /><slave name='onchip_memory2.s1' start='0x20000' end='0x40000' type='altera_avalon_onchip_memory2.s1' /><slave name='nios2_gen2.debug_mem_slave' start='0x40800' end='0x41000' type='altera_nios2_gen2.debug_mem_slave' /><slave name='rh_temp_i2c_opencores.avalon_slave_0' start='0x41000' end='0x41020' type='i2c_opencores.avalon_slave_0' /><slave name='light_i2c_opencores.avalon_slave_0' start='0x41020' end='0x41040' type='i2c_opencores.avalon_slave_0' /><slave name='mpu_i2c_opencores.avalon_slave_0' start='0x41040' end='0x41060' type='i2c_opencores.avalon_slave_0' /><slave name='timer.s1' start='0x41060' end='0x41080' type='altera_avalon_timer.s1' /><slave name='rh_temp_drdy_n.s1' start='0x41080' end='0x41090' type='altera_avalon_pio.s1' /><slave name='light_int.s1' start='0x41090' end='0x410A0' type='altera_avalon_pio.s1' /><slave name='mpu_int.s1' start='0x410A0' end='0x410B0' type='altera_avalon_pio.s1' /><slave name='sysid_qsys.control_slave' start='0x410B0' end='0x410B8' type='altera_avalon_sysid_qsys.control_slave' /><slave name='jtag_uart.avalon_jtag_slave' start='0x410B8' end='0x410C0' type='altera_avalon_jtag_uart.avalon_jtag_slave' /><slave name='spi_0.spi_control_port' start='0x42000' end='0x42020' type='altera_avalon_spi.spi_control_port' /></address-map>]]></parameter>
   <parameter name="data_master_high_performance_paddr_base" value="0" />
   <parameter name="data_master_high_performance_paddr_size" value="0" />
   <parameter name="data_master_paddr_base" value="0" />
@@ -698,6 +695,22 @@
   <parameter name="useShallowMemBlocks" value="false" />
   <parameter name="writable" value="true" />
  </module>
+ <module name="spi_0" kind="altera_avalon_spi" version="21.1" enabled="1">
+  <parameter name="avalonSpec" value="2.0" />
+  <parameter name="clockPhase" value="0" />
+  <parameter name="clockPolarity" value="0" />
+  <parameter name="dataWidth" value="12" />
+  <parameter name="disableAvalonFlowControl" value="false" />
+  <parameter name="inputClockRate" value="50000000" />
+  <parameter name="insertDelayBetweenSlaveSelectAndSClk" value="false" />
+  <parameter name="insertSync" value="false" />
+  <parameter name="lsbOrderedFirst" value="false" />
+  <parameter name="masterSPI" value="true" />
+  <parameter name="numberOfSlaves" value="1" />
+  <parameter name="syncRegDepth" value="2" />
+  <parameter name="targetClockRate" value="1200000" />
+  <parameter name="targetSlaveSelectToSClkDelay" value="0.0" />
+ </module>
  <module
    name="sysid_qsys"
    kind="altera_avalon_sysid_qsys"
@@ -717,15 +730,6 @@
   <parameter name="timeoutPulseOutput" value="false" />
   <parameter name="watchdogPulse" value="2" />
  </module>
- <connection
-   kind="avalon"
-   version="21.1"
-   start="nios2_gen2.data_master"
-   end="accelerometer_spi_0.avalon_accelerometer_spi_mode_slave">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00042000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
  <connection
    kind="avalon"
    version="21.1"
@@ -846,6 +850,15 @@
  <connection
    kind="avalon"
    version="21.1"
+   start="nios2_gen2.data_master"
+   end="spi_0.spi_control_port">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x00042000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="21.1"
    start="nios2_gen2.instruction_master"
    end="nios2_gen2.debug_mem_slave">
   <parameter name="arbitrationPriority" value="1" />
@@ -896,11 +909,7 @@
    version="21.1"
    start="clk_50.clk"
    end="mm_bridge_for_hps.clk" />
- <connection
-   kind="clock"
-   version="21.1"
-   start="clk_50.clk"
-   end="accelerometer_spi_0.clk" />
+ <connection kind="clock" version="21.1" start="clk_50.clk" end="spi_0.clk" />
  <connection
    kind="clock"
    version="21.1"
@@ -926,13 +935,6 @@
    version="21.1"
    start="clk_50.clk"
    end="rh_temp_i2c_opencores.clock" />
- <connection
-   kind="interrupt"
-   version="21.1"
-   start="nios2_gen2.irq"
-   end="accelerometer_spi_0.interrupt">
-  <parameter name="irqNumber" value="7" />
- </connection>
  <connection
    kind="interrupt"
    version="21.1"
@@ -981,6 +983,13 @@
    start="nios2_gen2.irq"
    end="light_int.irq">
   <parameter name="irqNumber" value="3" />
+ </connection>
+ <connection
+   kind="interrupt"
+   version="21.1"
+   start="nios2_gen2.irq"
+   end="spi_0.irq">
+  <parameter name="irqNumber" value="7" />
  </connection>
  <connection
    kind="reset"
@@ -1046,7 +1055,7 @@
    kind="reset"
    version="21.1"
    start="clk_50.clk_reset"
-   end="accelerometer_spi_0.reset" />
+   end="spi_0.reset" />
  <connection
    kind="reset"
    version="21.1"

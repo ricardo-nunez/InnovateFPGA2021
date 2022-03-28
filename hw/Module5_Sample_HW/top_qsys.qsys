@@ -112,6 +112,9 @@
    dir="end" />
  <interface name="memory" internal="hps_system.memory" type="conduit" dir="end" />
  <interface
+   name="nios_system_accelerometer_spi_0_external_interface"
+   internal="nios_system.accelerometer_spi_0_external_interface" />
+ <interface
    name="nios_system_led_pio"
    internal="nios_system.led_pio"
    type="conduit"
@@ -149,6 +152,11 @@
  <interface
    name="nios_system_rh_temp_i2c_opencores_export"
    internal="nios_system.rh_temp_i2c_opencores_export"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="nios_system_spi_0_external"
+   internal="nios_system.spi_0_external"
    type="conduit"
    dir="end" />
  <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
