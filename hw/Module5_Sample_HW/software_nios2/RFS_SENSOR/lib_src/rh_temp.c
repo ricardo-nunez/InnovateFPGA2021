@@ -10,7 +10,9 @@ bool th_dump_chip_info(alt_u32 I2C_Controller_Base);
 bool th_write_register(alt_u8 RegisterPorinter, alt_u16 Data16);
 bool th_read_register(alt_u8 RegisterPorinter, alt_u16 *pData16);
 
-void RH_Temp_Init(alt_u32 I2C_Controller_Base)
+extern int verbose;
+
+bool RH_Temp_Init(alt_u32 I2C_Controller_Base)
 {
 	const int ref_clk = 50*1000*1000; // 50Mhz
 	const int i2c_clk = 400*1000; // 400KHz
@@ -23,13 +25,13 @@ void RH_Temp_Init(alt_u32 I2C_Controller_Base)
     if (!bPass){
     	bPass = th_reset(RH_TEMP_I2C_OPENCORES_BASE); // try again
     	if (!bPass){
-    		printf("Failed to reset!\r\n");
+    		if (verbose) printf("Failed to reset!\r\n");
     	}
     }
 
     //th_dump_chip_info(RH_TEMP_I2C_OPENCORES_BASE);
 
-
+	return bPass;
 }
 
 bool RH_Temp_Read_Device_ID(alt_u16 *pID16){
