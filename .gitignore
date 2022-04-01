@@ -10,6 +10,7 @@
 .force*
 *.mk
 *.qws
+*.bak
 .metadata
 *.map
 linker.x
