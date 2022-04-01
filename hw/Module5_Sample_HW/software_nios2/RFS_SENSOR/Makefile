@@ -103,6 +103,7 @@ SDIR_C_SRCS += $(SRC_DIR_01)/I2C_core.c
 SDIR_C_SRCS += $(SRC_DIR_01)/light_sensor.c
 SDIR_C_SRCS += $(SRC_DIR_01)/mpu9250.c
 SDIR_C_SRCS += $(SRC_DIR_01)/rh_temp.c
+SDIR_C_SRCS += $(SRC_DIR_01)/adc.c
 SDIR_CXX_SRCS :=
 SDIR_ASM_SRCS :=
 
