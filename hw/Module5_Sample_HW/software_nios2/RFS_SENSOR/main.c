@@ -29,12 +29,22 @@
 #include "terasic_includes.h"
 #include "light_sensor.h"
 #include "rh_temp.h"
+#include "adc.h"
 #include "shared_mem_def.h"
 #include "math.h"
+
+int verbose = 0;
+
 
 void getMotion9(float *ax, float *ay, float *az, float *gx, float *gy, float *gz, float *mx, float *my, float *mz);
 void MPU9250_Init(alt_u32 I2C_Controller_Base);
 bool MPU9250_initialize();
+
+
+bool bLight;
+bool bTemp;
+bool bMIMU;
+bool bADC;
 
 
 static struct {
@@ -47,7 +57,8 @@ static struct {
 	float m[3][2];
 } thresh;
 
-bool convert_light_lux(int light0, int light1, float *lux){
+bool convert_light_lux(int light0, int light1, float *lux)
+{
 	float condition = (float)light1/(float)light0;
 	if 			(0 < condition    && condition <= 0.50) *lux = (0.0304 * light0) - (0.062 * light0 * powf(condition,1.4));
 	else if (0.50 < condition && condition <= 0.61) *lux = (0.0224 * light0) - (0.031 * light1);
@@ -57,8 +68,8 @@ bool convert_light_lux(int light0, int light1, float *lux){
 	return TRUE;
 }
 
-void  set_thresh( void ){
-
+void  set_thresh( void )
+{
   unsigned offst;
   union { 
   	unsigned u;
@@ -67,7 +78,10 @@ void  set_thresh( void ){
 
   // Light threshold
   offst = LIGHT0_SENSOR_L_THRESH>>2;
-	for (int i=0; i<2 ; i++) { thresh.light[0][i] = IORD(NIOS_SYSTEM_SHARED_MEMORY_BASE, offst++); }
+	
+	for (int i=0; i<2 ; i++) 
+	{
+	 thresh.light[0][i] = IORD(NIOS_SYSTEM_SHARED_MEMORY_BASE, offst++); }
   offst = LIGHT1_SENSOR_L_THRESH>>2;
 	for (int i=0; i<2 ; i++) { thresh.light[1][i] = IORD(NIOS_SYSTEM_SHARED_MEMORY_BASE, offst++); }
 	offst = LUX_SENSOR_L_THRESH >>2;
@@ -118,14 +132,16 @@ bool check_temp_hm_threshold(float temp, float hm){
 	return rv;
 }
 
-bool check_temp_ax9_threshold(float a[3], float g[3], float m[3]){
+bool check_temp_ax9_threshold(float a[3], float g[3], float m[3])
+{
 	bool rv=false;
 	int err=0;
 	for ( int i=0;i<3; i++){ if ( is_OutOfRange(a[i], &thresh.a[i][0]))  err++;  }
 	for ( int i=0;i<3; i++){ if ( is_OutOfRange(g[i], &thresh.g[i][0]))  err++;  }
 	for ( int i=0;i<3; i++){ if ( is_OutOfRange(m[i], &thresh.m[i][0]))  err++;  }
 
-	if (err) {
+	if (err) 
+	{
 		rv=true;
 	}
 	return rv;
@@ -135,56 +151,85 @@ bool check_temp_ax9_threshold(float a[3], float g[3], float m[3]){
 
 static bool g_clear_OOR_flag=true;
 
-void Sensor_Report(bool print_flag){
+void Sensor_Report(bool print_flag)
+{
   	bool bPass, bPass2;
 
   	////////////////////////////////
   	// report light sensor
   	alt_u16 light0 = 0, light1 = 0;
 		float lux = 0;
-  	bPass = Get_light(&light0, &light1);
-	  if(bPass) {
+
+	if (bLight)
+	{
+	  	bPass = Get_light(&light0, &light1);
+		  
+		if(bPass) 
+		{
 			bPass2 = convert_light_lux(light0, light1, &lux);
 		}
-		else bPass2 = FALSE;
-			
-  	if (print_flag) {
-			if(bPass2) {
-	  		printf("light0 = %d, light1 = %d, lux = %.3f\r\n", light0, light1,lux);
+		else
+			bPass2 = FALSE;
+				
+	  	if (print_flag) 
+		{
+			if(bPass2) 
+			{
+				printf("light0 = %d, light1 = %d, lux = %.3f\r\n", light0, light1,lux);
 			}
-			else if (bPass) {
-	  		printf("light0 = %d, light1 = %d,but getting lux value failed\r\n", light0, light1);
+			else if (bPass) 
+			{
+				printf("light0 = %d, light1 = %d,but getting lux value failed\r\n", light0, light1);
 			}
-	  	else{
-	  		printf("get light0 and light1 values failed!\r\n");
+		  	else
+			{
+		  		printf("get light0 and light1 values failed!\r\n");
+		  	}
 	  	}
-  	}
+	}
 
   	////////////////////////////////
   	// report HDC1000 temperature & humidity sensor
-  	float fTemperature, fHumidity;
-  	bPass = RH_Temp_Sensor_Read(&fTemperature, &fHumidity);
-  	if (print_flag) {
-	  	if (bPass){
-			printf("Temperature: %.3f*C\r\n", fTemperature);
-	    	printf("Humidity: %.3f%%\r\n",fHumidity);
-	  	}else{
-	  		printf("Failed to ready Temperature/Humidity sensor!\r\n");
+	float fTemperature, fHumidity;
+
+	if (bTemp)
+	{
+	  	
+	  	bPass = RH_Temp_Sensor_Read(&fTemperature, &fHumidity);
+	  	if (print_flag) {
+		  	if (bPass){
+				printf("Temperature: %.3f*C\r\n", fTemperature);
+		    	printf("Humidity: %.3f%%\r\n",fHumidity);
+		  	}else{
+		  		printf("Failed to ready Temperature/Humidity sensor!\r\n");
+		  	}
 	  	}
-  	}
+	}
 
 
   	////////////////////////////////
   	// report mpu9250 9-axis sensor
-  	float a[3];
+	float a[3];
   	float g[3];
   	float m[3];
-  	getMotion9(
-  	  &a[0], &a[1], &a[2], 
-  	  &g[0], &g[1], &g[2], 
-  	  &m[0], &m[1], &m[2] 
-  	);
 
+	if (bMIMU)
+	{
+	  	
+	  	getMotion9(
+	  	  &a[0], &a[1], &a[2], 
+	  	  &g[0], &g[1], &g[2], 
+	  	  &m[0], &m[1], &m[2] 
+	  	);
+	}
+
+
+	float fCO2;
+
+	if (bADC)
+	{
+		fCO2 = readCO2();
+	}
 
   	////////////////////////////////
     // Check out of range, and set LED
@@ -201,13 +246,16 @@ void Sensor_Report(bool print_flag){
 
   	////////////////////////////////
     // Print out sensor values
-  	if (print_flag) {
+  	if (print_flag) 
+{
 	  	printf("9-axis info:\r\n");
 	  	printf("ax = %.3f, ay = %.3f, az = %.3f\r\n", a[0], a[1], a[2]);
 	  	printf("gx = %.3f, gy = %.3f, gz = %.3f\r\n", g[0], g[1], g[2]);
 	  	printf("mx = %.3f, my = %.3f, mz = %.3f\r\n", m[0], m[1], m[2]);
   	}
-  	if (print_flag) {
+
+  	if (print_flag) 
+	{
 #ifdef DEBUG
   	   ////////////////////////////////
        // Print out threshold values
@@ -263,53 +311,65 @@ void Sensor_Report(bool print_flag){
   	p =(unsigned *)&m[1];    IOWR(NIOS_SYSTEM_SHARED_MEMORY_BASE, offst++, *p);
   	p =(unsigned *)&m[2];    IOWR(NIOS_SYSTEM_SHARED_MEMORY_BASE, offst++, *p);
 
+
+	offset = CO2_SENSOR_VALUE >> 2;
+	p = (unsigned*) &fCO2; IOWR(NIOS_SYSTEM_SHARED_MEMORY_BASE, offset++, *p);
+
+
 }
 
 #define READ_COMMUNICATION_REGISTER IORD(NIOS_SYSTEM_SHARED_MEMORY_BASE, 1)
 #define SEND_ACK_COMMUNICATION_REGISTER IOWR(NIOS_SYSTEM_SHARED_MEMORY_BASE, 1, 0)
 #define SEND_STATUS_REGISTER(x) IOWR(NIOS_SYSTEM_SHARED_MEMORY_BASE, 0, (x))
 
+
+
 int main()
 {
 //	fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
 
-	printf("Welcome to DE10_NANO RFS_SENSOR DEMO!\r\n");
-
-  	bool bPass = FALSE;
-
-  	////////////////////////////////////
-  	// init light sensor i2c and power on
-  	Light_Init(LIGHT_I2C_OPENCORES_BASE);
-  	bPass = Light_PowerSwitch(TRUE);
-  	if(bPass)
-  		printf("light sensor power up successful!\r\n");
-  	else
-  		printf("light sensor power up failed!\r\n");
-
-  	////////////////////////////////////
-  	// init HDC1000: temperature and humidity sensor
-  	RH_Temp_Init(RH_TEMP_I2C_OPENCORES_BASE);
-  	bPass = RH_Temp_Sensor_Init();
-  	if(bPass)
-  		printf("Init HDC1000 successful!\r\n");
-  	else
-  		printf("Init HDC1000 failed!\r\n");
+	printf("==============================================================\n");
+	printf("CO2 Sensor from DE10_NANO\r\n");
+	printf("CNM & UAB project for Innovate 2021 design challenge \r\n");
+	printf("==============================================================\n");
+  	//bool bPass = FALSE;
 
 
+	printf("[1] Light Sensor - 				");
+  	bLight = Light_Init(LIGHT_I2C_OPENCORES_BASE);
+  	if (bLight) bLight = Light_PowerSwitch(TRUE);
+	printf((bLight)? "[OK]\r\n" : "### ERROR ###\r\n");
+
+	printf("[2] HDC1000 temperature and humidity sensor - 	");
+  	bTemp = RH_Temp_Init(RH_TEMP_I2C_OPENCORES_BASE);
+  	bTemp = RH_Temp_Sensor_Init();
+	printf((bTemp)? "[OK]\r\n" : "### ERROR ###\r\n");
 
   	////////////////////////////////////
   	//init MPU9250 9-axis sensor
+	printf("[3] MPU9250 9-axis MIMU - 			");
   	MPU9250_Init(MPU_I2C_OPENCORES_BASE);
-  	MPU9250_initialize();
+  	bMIMU = MPU9250_initialize();
+	printf((bMIMU)? "[OK]\r\n" : "### ERROR ###\r\n");
+
+	printf("[4] ADC for CO2 Sensing - 			");
+  	ADC_Init(NIOS_SYSTEM_ADC_0_BASE);
+  	bADC = ADC_Initialize();
+	printf((bADC)? "[OK]\r\n" : "### ERROR ###\r\n");
+
   	printf("\r\n");
 
-    int loop_cnt=0;
-  	while(1){ // report every second
+
+        int loop_cnt=0;
+  	while(1)
+	{
+		// report every second
 
   		SEND_STATUS_REGISTER(loop_cnt|0x80000000);
   		//Mode select
   		unsigned com_reg = READ_COMMUNICATION_REGISTER;
-		if ( (com_reg&0xffff0000)== 0xaaaa0000 ) {
+		if ( (com_reg&0xffff0000)== 0xaaaa0000 ) 
+		{
 			SEND_ACK_COMMUNICATION_REGISTER; // Send ACK
 			switch (com_reg&0xffff) {
 			case 1:
@@ -324,7 +384,7 @@ int main()
   		set_thresh();  // Read threshold values from shared memory and set the thresh struct
 
   		// print out values once every 16 loops
-  		bool print_flag = ((loop_cnt) & 0xF) == 0;
+  		bool print_flag = ((loop_cnt) & 0xFF) == 0;
   		Sensor_Report(print_flag);
 
   		usleep(1000*50);
@@ -334,5 +394,5 @@ int main()
 
 
 
-  return 0;
+        return 0;
 }
