@@ -115,6 +115,11 @@
    name="nios_system_accelerometer_spi_0_external_interface"
    internal="nios_system.accelerometer_spi_0_external_interface" />
  <interface
+   name="nios_system_adc_0_external_interface"
+   internal="nios_system.adc_0_external_interface"
+   type="conduit"
+   dir="end" />
+ <interface
    name="nios_system_led_pio"
    internal="nios_system.led_pio"
    type="conduit"
@@ -156,9 +161,7 @@
    dir="end" />
  <interface
    name="nios_system_spi_0_external"
-   internal="nios_system.spi_0_external"
-   type="conduit"
-   dir="end" />
+   internal="nios_system.spi_0_external" />
  <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
  <module name="clk_0" kind="clock_source" version="21.1" enabled="1">
   <parameter name="clockFrequency" value="50000000" />
