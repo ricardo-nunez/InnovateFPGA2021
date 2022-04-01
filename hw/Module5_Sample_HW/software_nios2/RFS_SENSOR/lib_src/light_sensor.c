@@ -23,21 +23,31 @@ bool I2C_Read_Light(alt_8 DeviceAddr, alt_u8 CommandCode, alt_u8 *pControlData);
 // export API
 static alt_u32 Light_I2C_Controller_Base = LIGHT_I2C_OPENCORES_BASE;
 
-void Light_Init(alt_u32 I2C_Controller_Base){
+bool Light_Init(alt_u32 base)
+{
 	const int Ref_CLK = 50*1000*1000; // 50MHz
 	const int I2C_CLK = 400*1000; // 400KHz
 
-	Light_I2C_Controller_Base = I2C_Controller_Base;
-	oc_i2c_init_ex(Light_I2C_Controller_Base, Ref_CLK, I2C_CLK);
+	Light_I2C_Controller_Base = base;
+
+	//Light_I2C_Controller_Base = I2C_Controller_Base;
+	oc_i2c_init_ex(base, Ref_CLK, I2C_CLK);
+
+	
+	alt_u8 data;
+	bool bPass = Light_GetID(&data);
+
+	return bPass;
 }
 
-void Light_GetID(alt_u8 *data)
+bool Light_GetID(alt_u8 *data)
 {
     bool bPass;
     alt_u8 CommandCode = COMMAND_CMD | ID_REG ;
     //read ID
     bPass = I2C_Read_Light( DEVICE_ADDR,CommandCode , data);
-    if(!bPass)  *data = 0;
+    
+    return bPass;
 
 }
 
@@ -136,11 +146,14 @@ bool Get_light(alt_u16 *light0, alt_u16 *light1)
 
     //get light sensor Id
     Light_GetID(&device_Id);
+
     if(device_Id == 0)
     {
         printf("read id fail \n");
         return FALSE;
-    }else{
+    }
+    else
+    {
     	//printf("Light Sensor ID=%xh\r\n", device_Id); //
     }
 
