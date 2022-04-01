@@ -22,5 +22,13 @@ bool ADC_Update()
 
 alt_u32 ADC_GetChannel(alt_u8 ch)
 {
-	return adc_dev[ch];
+	//return adc_dev[ch];
+
+	alt_u32 r = IORD(adc_dev, ch);
+	
+	alt_u32 mask = (1<<12) -1;
+
+	r = r & mask;	
+	
+	return r;
 }
