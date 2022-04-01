@@ -30,6 +30,8 @@
 #define MAGNE_X_SENSOR_VALUE   (0x12C)
 //#define MAGNE_Y_SENSOR_VALUE   (0x130)
 //#define MAGNE_Z_SENSOR_VALUE   (0x134)
+#define CO2_SENSOR_VALUE   	(0x138)
+
 
 // Threshold values
 #define LIGHT0_SENSOR_L_THRESH     (0x200)
