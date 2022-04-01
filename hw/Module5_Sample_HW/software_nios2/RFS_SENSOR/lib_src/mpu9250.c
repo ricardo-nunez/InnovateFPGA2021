@@ -243,7 +243,8 @@ bool MPU9250_initialize()
 
 	calib_mag();
 
-	return 0;
+	// return 0; @dcr all returns of init return true when successful
+	return 1;
 }
 
 /*-----------------------------------------------------------------------------------------------
