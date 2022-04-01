@@ -135,6 +135,11 @@
    type="conduit"
    dir="end" />
  <interface
+   name="nios_system_light_pio_external_connection"
+   internal="nios_system.light_pio_external_connection"
+   type="conduit"
+   dir="end" />
+ <interface
    name="nios_system_mpu_i2c_opencores_export"
    internal="nios_system.mpu_i2c_opencores_export"
    type="conduit"
