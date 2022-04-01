@@ -28,8 +28,8 @@
 
 
 //public API
-void Light_Init(alt_u32 I2C_Controller_Base); // init i2c ip core
-void Light_GetID(alt_u8 *data);
+bool Light_Init(alt_u32 I2C_Controller_Base); // init i2c ip core
+bool Light_GetID(alt_u8 *data);
 bool Light_PowerSwitch(bool bSwitch);
 bool Light_Get_ADCData0(alt_u16 *pChannelData);
 bool Light_Get_ADCData1(alt_u16 *pChannelData);
