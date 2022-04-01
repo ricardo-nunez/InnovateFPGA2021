@@ -121,7 +121,16 @@ module top(
     output		          		WIFI_UART0_RTS,
     input 		          		WIFI_UART0_RX,
     output		          		WIFI_UART0_TX,
-    input 		          		WIFI_UART1_RX
+    input 		          		WIFI_UART1_RX,
+	 
+	 // LIGHT
+	 output							LIGHT_OUT,  // Y15
+	 
+	 // ADC
+	 output 							ADC_SCLK,  // V10
+	 output							ADC_CS_N,  // U9 
+	 input							ADC_DOUT,  // AD4
+	 output 							ADC_DIN    // AC4
 );
 
 assign MPU_CS_n = 1'b1;
@@ -276,6 +285,14 @@ top_qsys u0(
                .nios_system_rh_temp_drdy_n_external_connection_export  (RH_TEMP_DRDY_n),   //  rh_temp_drdy_n_external_connection.export
 
                .nios_system_led_pio_export                            (fpga_led_for_nios_internal),
+					
+					.nios_system_light_pio_external_connection_export                 (LIGHT_OUT),
+					
+					.nios_system_adc_0_external_interface_sclk                        (ADC_SCLK),                        //                nios_system_adc_0_external_interface.sclk
+					.nios_system_adc_0_external_interface_cs_n                        (ADC_CS_N),                        //                                                    .cs_n
+					.nios_system_adc_0_external_interface_dout                        (ADC_DOUT),                        //                                                    .dout
+					.nios_system_adc_0_external_interface_din                         (ADC_DIN),                         //                                                    .din
+        
            );
 
 
