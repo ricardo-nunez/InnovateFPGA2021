@@ -32,6 +32,7 @@
 #include "adc.h"
 #include "shared_mem_def.h"
 #include "math.h"
+#include "PerformanceCounter.h"
 
 int verbose = 0;
 
@@ -150,6 +151,188 @@ bool check_temp_ax9_threshold(float a[3], float g[3], float m[3])
 #define DEBUG
 
 static bool g_clear_OOR_flag=true;
+
+#define NUM_SAMPLES	10
+#define SAMPLING_FREQ	10	// 100 Hz
+#define SAMPLING_PERIOD (1.0 / SAMPLING_FREQ)
+
+
+#define LIGHT_SIGNAL_FREQ	3	// 5 Hz
+#define LIGHT_PERIOD (1.0 / LIGHT_SIGNAL_FREQ)
+
+#define NUM_LIGHT_PERIODS	10
+	
+void lightControl(int v) 
+{
+	IOWR( NIOS_SYSTEM_LIGHT_PIO_BASE, 0, v);
+}
+
+
+#define LEN_FILTER 60
+
+alt_u32 fifo_vact[LEN_FILTER];
+alt_u32 fifo_vref[LEN_FILTER];
+int fifo_vact_num = 0;
+int fifo_vref_num = 0;
+
+#define INSERT_FIFO(fifo, v, num)   fifo[num] = v; num = (num + 1) % LEN_FILTER;
+
+alt_u32 getFifoMean(alt_u32* fifo)
+{
+	alt_u32 sum = 0;
+
+	for (int i=0; i<  LEN_FILTER; i++)
+		sum += fifo[i];
+
+	return sum/LEN_FILTER;
+}
+
+
+float readCO2()
+{
+	printf("\nSample CO2 value\n");
+	float ret = 0;
+
+	// acquire loop
+	uint64 t0;
+	uint64 tf;
+	double t;
+
+	double halfPeriod = LIGHT_PERIOD / 2;
+	double deadline;
+	int lightState = 0; 
+
+	//printf("Sampling period: %f\n", deadline);
+
+	lightState ^=1;
+	lightControl(lightState);
+	delay(halfPeriod);
+
+	lightState ^=1;
+ 	lightControl(lightState);
+	delay(halfPeriod);
+
+	lightState ^=1;
+ 	lightControl(lightState);
+	t0 = perfCounter();
+	deadline = halfPeriod;
+
+	for (int i=0; i< LEN_FILTER; i++)
+	{
+		// avoid invalid values in the fifos
+		alt_u32 vact = ADC_GetChannel(1);
+		alt_u32 vref = ADC_GetChannel(2);
+
+		INSERT_FIFO(fifo_vact, vact, fifo_vact_num);
+		INSERT_FIFO(fifo_vref, vref, fifo_vref_num);
+	}
+
+	int periods = 0;
+
+	alt_u32 max_act = 0;
+	alt_u32 min_act = 0xFFFFFFFF;
+
+	alt_u32 max_ref = 0;
+	alt_u32 min_ref = 0xFFFFFFFF;
+
+	while (periods < NUM_LIGHT_PERIODS*2)
+	{
+		tf =  perfCounter();
+		t = secondsBetweenLaps(t0, tf);
+
+		if (t < deadline)
+		{
+			// we are still in the semicycle
+			ADC_Update();
+			
+			alt_u32 vact = ADC_GetChannel(1);
+			alt_u32 vref = ADC_GetChannel(2);
+
+			INSERT_FIFO(fifo_vact, vact, fifo_vact_num);
+			INSERT_FIFO(fifo_vref, vref, fifo_vref_num);
+
+			vact = getFifoMean(fifo_vact);
+			vref = getFifoMean(fifo_vref);
+
+			if (vact > max_act) max_act = vact;
+			if (vact < min_act) min_act = vact;
+
+			if (vref > max_ref) max_ref = vref;
+			if (vref < min_ref) min_ref = vref;
+
+			//printf("act=%08lX  min:%08lX - max:%08lX\n", vact, min_act, max_act);
+
+			//delay(0.1);
+		}				
+
+		else
+		{
+			// change state
+			lightState ^=1;
+		 	lightControl(lightState);
+			t0 = perfCounter();
+			periods++;
+
+		}
+
+/*		ADC_Update();
+
+		printf(".");
+
+		act_ch[i] = ADC_GetChannel(0);
+		ref_ch[i] = ADC_GetChannel(1);
+
+
+loop:
+		//printf("t: %f\n", t);
+
+		if (t < deadline)
+			goto loop;
+
+		deadline += SAMPLING_PERIOD;*/
+	}
+	
+	lightControl(0);
+
+	printf("act ->  %08lX - %08lX  range: %08lX\n", min_act, max_act, max_act-min_act);
+	printf("ref ->  %08lX - %08lX  range: %08lX\n", min_ref, max_ref, max_ref-min_ref);
+
+	
+
+	//////////////////////////////////////////////
+	/// PROCESSING ALGORITHM
+
+	float VppACT = (max_act - min_act) * 4.096 /4095.0;
+	float VppREF = (max_ref - min_ref) * 4.096 /4095.0;
+
+	float VppACT400ppm = 0.058014164;
+	float VppREF400ppm = 0.080019536;
+	float ZERO = 0.97;
+	//float ABS400ppm = 0.25257732;
+	float ABS = 1 - (VppACT/(VppREF * ZERO));
+
+	printf("ABS: %7f\n", ABS);
+
+	float SPAN = 165.002265;
+	float b = -0.00041;
+	float c = 1/0.22;
+	float estimatedCO2ppm = log(1-(ABS/SPAN))/b;
+	estimatedCO2ppm = pow(estimatedCO2ppm, c);
+
+	//printf("ACT Max element: %i\n", ACTmax);
+	//printf("ACT Min element: %i\n", ACTmin);
+	//printf("REF Max element: %i\n", REFmax);
+	//printf("REF Min element: %i\n", REFmin);
+	/*ACTmax = 0;
+	ACTmin = pow(2,nbits) - 1;
+	REFmax = 0;
+	REFmin = pow(2,nbits) - 1;*/
+	printf("Estimated CO2 [ppm]: %7f\n", estimatedCO2ppm);
+
+
+	return ret;
+}
+
 
 void Sensor_Report(bool print_flag)
 {
@@ -312,8 +495,8 @@ void Sensor_Report(bool print_flag)
   	p =(unsigned *)&m[2];    IOWR(NIOS_SYSTEM_SHARED_MEMORY_BASE, offst++, *p);
 
 
-	offset = CO2_SENSOR_VALUE >> 2;
-	p = (unsigned*) &fCO2; IOWR(NIOS_SYSTEM_SHARED_MEMORY_BASE, offset++, *p);
+	offst = CO2_SENSOR_VALUE >> 2;
+	p = (unsigned*) &fCO2; IOWR(NIOS_SYSTEM_SHARED_MEMORY_BASE, offst++, *p);
 
 
 }
