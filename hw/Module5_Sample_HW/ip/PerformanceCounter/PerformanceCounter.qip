@@ -1,0 +1,17 @@
+set_global_assignment -name IP_TOOL_NAME "PerformanceCounter"
+set_global_assignment -name IP_TOOL_VERSION "10.1"
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "PerformanceCounter.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_Addsub_H872220872_L39.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_And2_w1.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_Constant_w64_v0000000000000001.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_Gnd_w1.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_Merge_i1486.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_Merge_i1524.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_mux_2to1_w32_ws1.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_mux_2to1_w64_ws1.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_Not_w1.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_Or2_w1.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_Or3_w1.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_REG32LR.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_upDownCounter_i1546.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "performance_Vcc_w1.v"]
