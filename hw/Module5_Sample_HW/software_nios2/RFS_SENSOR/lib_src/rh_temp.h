@@ -15,7 +15,7 @@
 
 #define RH_Temp_DEVICE_ADDR  0x80
 
-void RH_Temp_Init(alt_u32 I2C_Controller_Base);
+bool RH_Temp_Init(alt_u32 I2C_Controller_Base);
 bool RH_Temp_Read_Device_ID(alt_u16 *pID16);
 bool RH_Temp_Sensor_Init();
 
