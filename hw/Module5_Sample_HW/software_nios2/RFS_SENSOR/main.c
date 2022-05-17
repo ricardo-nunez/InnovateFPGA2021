@@ -307,15 +307,24 @@ loop:
 
 	float VppACT400ppm = 0.058014164;
 	float VppREF400ppm = 0.080019536;
-	float ZERO = 0.97;
+	
 	//float ABS400ppm = 0.25257732;
 	float ABS = 1 - (VppACT/(VppREF * ZERO));
 
 	printf("ABS: %7f\n", ABS);
 
-	float SPAN = 165.002265;
-	float b = -0.00041;
-	float c = 1/0.22;
+	//Valor primera versio
+	//float SPAN = 165.002265;
+	//float ZERO = 0.97;
+	//float b = -0.00041;
+	//float c = 1/0.22;
+	
+	//Canvis fets pel Ricardo
+	float SPAN = 1.0430991;
+	float ZERO = 0.98;
+	float b = -0.00018;
+	float c = 1/1.15;
+	
 	float estimatedCO2ppm = log(1-(ABS/SPAN))/b;
 	estimatedCO2ppm = pow(estimatedCO2ppm, c);
 
